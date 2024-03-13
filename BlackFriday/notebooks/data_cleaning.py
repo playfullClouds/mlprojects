@@ -1,4 +1,6 @@
 # data_cleaning_module.py
+import os
+import shutil
 
 import pandas as pd
 import numpy as np
@@ -288,7 +290,7 @@ def preprocess_data(file_path):
     data = handle_missing_values(data, strategy='mode')
     
     # Check for outliers in the 'Purchase' column
-    _, _, outlier_percentage = check_for_outliers(data, 'Purchase')
+    # _, _, outlier_percentage = check_for_outliers(data, 'Purchase')
     
     # # Dynamically Winsorize outliers in the 'Purchase' column
     # data = refined_dynamic_winsorize(data, 'Purchase')
@@ -304,11 +306,25 @@ def preprocess_data(file_path):
     
     
 # Load and preprocess the data
-file_path = 'notebook\data\BlackFriday.csv'
+file_path = r'C:\mlprojects\BlackFriday\data\BlackFriday.csv'
 cleaned_data = preprocess_data(file_path)
 
 # verify the codes.
 print(cleaned_data.head())
+
+# Save the clean dataset
+cleaned_data_file_path = 'cleaned_black_friday_data.csv'
+cleaned_data.to_csv(cleaned_data_file_path, index=False)
+
+# Move the saved file to the data directory
+destination_dir = os.path.join(r'C:\mlprojects\BlackFriday\data')
+
+# Create the destination directory if it doesn't exist
+os.makedirs(destination_dir, exist_ok=True)
+
+shutil.move(cleaned_data_file_path, destination_dir)
+
+
 
 # save the clean dataset
 # cleaned_data.to_csv('winsorize_cleaned_black_friday_data.csv', index=False)

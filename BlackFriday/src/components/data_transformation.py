@@ -60,7 +60,7 @@ class DataTransformation:
             ord_pipeline = Pipeline(
                 steps=[
                     # ("imputer", SimpleImputer(strategy="most_frequent")),
-                    ("label_encoder", OrdinalEncoder()),
+                    ("Ordinal_encoder", OrdinalEncoder()),
                     ("scaler", StandardScaler(with_mean=False))
                 ]
             )
