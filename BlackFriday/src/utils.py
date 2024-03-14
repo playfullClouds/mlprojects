@@ -1,98 +1,68 @@
-import os  # Importing the os module for operating system related functions
-import sys  # Importing the sys module for system-specific parameters and functions
+import os
+import sys
 
-import pandas as pd  # Importing the pandas library as pd for data manipulation and analysis
-import numpy as np  # Importing the NumPy library as np for numerical computing
-import dill  # Importing the dill module for object serialization
+import pandas as pd
+import numpy as np
+import dill
 
-from sklearn.metrics import r2_score  # Importing r2_score for evaluating regression models
-from sklearn.feature_selection import mutual_info_regression  # Importing mutual_info_regression for feature selection
+from sklearn.metrics import (
+    r2_score,
+    # mean_squared_error,
+    # mean_absolute_error
+)
 
-# Importing custom modules
-from src.exception import CustomException  # Importing CustomException class from custom modules
-from src.logger import logging  # Importing the logging module from custom modules
+
+from src.exception import CustomException
 
 
 def save_object(file_path, obj):
-    """
-    Save an object to a file using dill serialization.
-
-    Args:
-        file_path (str): Path to save the object.
-        obj: Object to be saved.
-    """
-    try:
-        dir_path = os.path.dirname(file_path)  # Extracting the directory path
-        
-        os.makedirs(dir_path, exist_ok=True)  # Creating the directory if it doesn't exist
-        
-        with open(file_path, "wb") as file_obj:  # Opening the file in binary write mode
-            dill.dump(obj, file_obj)  # Serializing and saving the object to the file
     
-    except Exception as e:  # Handling any exception that might occur
-        raise CustomException(e, sys)  # Raising a custom exception with the caught exception and sys module
+    try:
+        dir_path = os.path.dirname(file_path)
+        
+        os.makedirs(dir_path, exist_ok=True)
+        
+        with open(file_path, "wb") as file_obj:
+            dill.dump(obj, file_obj)
+    
+    
+    
+    except Exception as e:
+        raise CustomException(e, sys)
+    
     
     
 def evaluate_models(X_train, y_train, X_validate, y_validate, models):
-    """
-    Evaluate machine learning models on training and validation data.
-
-    Args:
-        X_train: Features of the training data.
-        y_train: Target variable of the training data.
-        X_validate: Features of the validation data.
-        y_validate: Target variable of the validation data.
-        models (dict): Dictionary containing machine learning models.
-
-    Returns:
-        dict: Dictionary containing evaluation scores for each model.
-    """
     try:
-        report = {}  # Initializing an empty dictionary to store evaluation scores
+        report = {}
         
-        for model_name, model in models.items():  # Iterating over each model in the dictionary
-            model.fit(X_train, y_train)  # Fitting the model on the training data
+        for model_name, model in models.items():
+        # for i in range(len(list(models))):
             
-            y_train_pred = model.predict(X_train)  # Predicting on the training data
-            y_validate_pred = model.predict(X_validate)  # Predicting on the validation data
+        #     model = list(models.values())[i]
             
-            # Calculating R^2 scores for training and validation data
+            model.fit(X_train, y_train)
+            
+            y_train_pred = model.predict(X_train)
+            y_validate_pred = model.predict(X_validate)           
+            
             train_model_score = r2_score(y_train, y_train_pred)
             validation_model_score = r2_score(y_validate, y_validate_pred)
             
-            # Storing the scores in the report dictionary
+            # report[model_name] = {
+            #     'train_score': train_model_score,
+            #     'validation_score': validation_model_score
+            # }
+            
             report[f'{model_name}_train_score'] = train_model_score
             report[f'{model_name}_validation_score'] = validation_model_score
             
-        return report  # Returning the report containing evaluation scores
+            # report[list(models.keys())[1]] = validation_model_score
+
+        return report
            
-    except Exception as e:  # Handling any exception that might occur
-        raise CustomException(e, sys)  # Raising a custom exception with the caught exception and sys module 
-    
-
-def select_features_by_mutual_info(X_train, y_train, n_features=10):
-    """
-    Select top features based on mutual information between features and target.
-
-    Args:
-        X_train: Features of the training data.
-        y_train: Target variable of the training data.
-        n_features (int): Number of top features to select.
-
-    Returns:
-        np.ndarray: Indices of the selected top features.
-    """
-    try:
-        mi_scores = mutual_info_regression(X_train, y_train)  # Computing mutual information scores
-        
-        # Selecting top features based on mutual information scores
-        top_features_indices = np.argsort(mi_scores)[-n_features:]
-        
-        return top_features_indices  # Returning the indices of the selected top features
-    
-    except Exception as e:  # Handling any exception that might occur
-        raise CustomException(e, sys)  # Raising a custom exception with the caught exception and sys module
-
+    except Exception as e:
+        raise CustomException(e, sys) 
 
 
 

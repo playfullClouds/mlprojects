@@ -1,87 +1,87 @@
-import os  # Importing the os module for operating system related functions
-import sys  # Importing the sys module for system-specific parameters and functions
-from dataclasses import dataclass  # Importing the dataclass decorator from the dataclasses module
+import os
+import sys
+from dataclasses import dataclass
 
-# Importing machine learning models and evaluation metrics
-from catboost import CatBoostRegressor  # Importing CatBoostRegressor for gradient boosting
-from xgboost import XGBRegressor  # Importing XGBRegressor for gradient boosting
-from sklearn.ensemble import (  # Importing ensemble models for regression
-    GradientBoostingRegressor,  # Gradient boosting regressor
-    RandomForestRegressor  # Random forest regressor
+from catboost import CatBoostRegressor
+from xgboost import XGBRegressor
+from sklearn.ensemble import (
+    GradientBoostingRegressor,
+    RandomForestRegressor
 )
-from sklearn.metrics import r2_score  # Importing r2_score for evaluating regression models
 
-# Importing custom modules
-from src.exception import CustomException  # Importing CustomException class from custom modules
-from src.logger import logging  # Importing the logging module from custom modules
-from src.utils import save_object, evaluate_models  # Importing specific functions from custom modules
+from sklearn.metrics import r2_score
 
-@dataclass  # Decorating the class ModelTrainerConfig with the @dataclass decorator
-class ModelTrainerConfig:  # Defining a dataclass for configuration settings related to model training
-    trained_model_file_path = os.path.join("artifacts", "model.pkl")  # Default path for saving the trained model
+from src.exception import CustomException
+from src.logger import logging
+from src.utils import save_object, evaluate_models
 
-class ModelTrainer:  # Defining a class ModelTrainer for training machine learning models
-    def __init__(self):  # Initializing the ModelTrainer class
-        self.model_trainer_config = ModelTrainerConfig()  # Storing the configuration object as an attribute
+
+
+@dataclass
+class ModelTrainerConfig:
+    trained_model_file_path = os.path.join("artifacts", "model.pkl")
+    
+   
+class ModelTrainer:
+    def __init__(self):
+        self.model_trainer_config = ModelTrainerConfig()
         
-    def get_best_model_from_report(self, model_report):  # Method to extract the best model from a model report
-        # Extracting only validation scores and model names
+    def get_best_model_from_report(self, model_report):
+        # Extract only validation scores and model names
         validation_scores = {key.replace('_validation_score', ''): score for key, score in model_report.items() if '_validation_score' in key}
        
-        # Finding the model with the highest validation score
+        # Find the model with the highest validation score
         best_model_name = max(validation_scores, key=validation_scores.get)
         best_model_score = validation_scores[best_model_name]
         
-        return best_model_name, best_model_score  # Returning the name and score of the best model
+        return best_model_name, best_model_score
     
-    def initiate_model_trainer(self, train_array, validate_array):  # Method to initiate model training
-        try:  # Beginning of a try block to handle exceptions
-            logging.info("Splitting training, validation, and test input data")  # Logging a message to indicate the splitting of data
+    def initiate_model_trainer(self, train_array, validate_array):
+        
+        try:
+            logging.info("Split training, validation, and test input data")
             
-            # Splitting the input data into features and target variables for training and validation sets
             X_train, y_train = train_array[:, :-1], train_array[:, -1]
             X_validate, y_validate = validate_array[:, :-1], validate_array[:, -1]
 
-            # Defining a dictionary containing machine learning models for regression
             models = {
-                "Random Forest": RandomForestRegressor(),  # Random forest regressor
-                "Gradient Boosting": GradientBoostingRegressor(),  # Gradient boosting regressor
-                "XGBRegressor": XGBRegressor(),  # XGBoost regressor
-                "CatBoosting Regressor": CatBoostRegressor(verbose=False)  # CatBoost regressor
+                "Random Forest": RandomForestRegressor(),
+                "Gradient Boosting": GradientBoostingRegressor(),
+                "XGBRegressor": XGBRegressor(),
+                "CatBoosting Regressor": CatBoostRegressor(verbose=False)
             }
             
-            # Evaluating the models on the training and validation sets
             model_report = evaluate_models(X_train=X_train, y_train=y_train, X_validate=X_validate, 
-                                           y_validate=y_validate, models=models)
+                                           y_validate=y_validate,models=models)
             
-            # Using the utility function to get the best model based on validation scores
+            
+            # Use the utility function to get the best model based on validation scores
             best_model_name, best_model_score = self.get_best_model_from_report(model_report)
             
-            # If the best model's score is less than 0.6, raise an exception
+            
             if best_model_score < 0.6:
                 raise CustomException("No best model found with sufficient score")
             
-            logging.info(f"Best model: {best_model_name} with R^2 score: {best_model_score}")  # Logging the best model and its score
+            logging.info(f"Best model: {best_model_name} with R^2 score: {best_model_score}")
 
-            # Accessing the best model using its name
+            # Access the best model using its name
             best_model = models[best_model_name]
-            best_model.fit(X_train, y_train)  # Ensuring the best model is retrained on the full training set
+            best_model.fit(X_train, y_train)  # Ensure the best model is retrained on the full training set
             
-            # Saving the trained model to a file
             save_object(
                 file_path=self.model_trainer_config.trained_model_file_path,
                 obj=best_model
             )
             
-            # Making predictions on the validation set using the best model
             predicted = best_model.predict(X_validate)
-            r2_square = r2_score(y_validate, predicted)  # Calculating the R^2 score
+            r2_square = r2_score(y_validate, predicted)
             
-            return r2_square, best_model_name  # Returning the R^2 score and the name of the best model
+            return r2_square, best_model_name
+            
         
-        except Exception as e:  # Handling any exception that might occur
-            raise CustomException(e, sys)  # Raising a custom exception with the caught exception and sys module
-
+        except Exception as e:
+            raise CustomException(e, sys)
+  
 
 
 """
