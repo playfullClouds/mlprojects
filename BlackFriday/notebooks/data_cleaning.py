@@ -20,7 +20,7 @@ It uses pandas to read a CSV file and returns a pandas DataFrame.
 """
 def load_data(file_path):
     """Load the Black Friday dataset."""
-    return pd.read_csv(file_path)
+    return pd.read_csv(file_path, dtype={'Age': str})
 
 
 """
@@ -225,18 +225,51 @@ strategy (mean, median, mode, or a specific value).
 It fills the missing values accordingly and returns the modified DataFrame.
 """
 
-def handle_missing_values(df, strategy='mean'):
+# def handle_missing_values(df, strategy='mean'):
     
-    # Handle missing values in a DataFrame.
-    print("")
+#     # Handle missing values in a DataFrame.
+#     print("")
+#     if strategy == 'mean':
+#         return df.fillna(df.mean())
+#     elif strategy == 'median':
+#         return df.fillna(df.median())
+#     elif strategy == 'mode':
+#         return df.fillna(df.mode().iloc[0])
+#     else:
+#         return df.fillna(strategy)
+
+
+def handle_missing_values(df, strategy='mean', inplace=False):
+    """
+    Handle missing values in a DataFrame based on a specified strategy.
+
+    Parameters:
+    df (DataFrame): The DataFrame to process.
+    strategy (str or scalar): Strategy for filling missing values ('mean', 'median', 'mode', or a scalar value).
+    inplace (bool): If True, fill missing values in place. Otherwise, return a copy of the DataFrame.
+
+    Returns:
+    DataFrame: The DataFrame with missing values handled, unless inplace=True.
+    """
+    if not inplace:
+        df = df.copy()
+
     if strategy == 'mean':
-        return df.fillna(df.mean())
+        df.fillna(df.mean(), inplace=True)
     elif strategy == 'median':
-        return df.fillna(df.median())
+        df.fillna(df.median(), inplace=True)
     elif strategy == 'mode':
-        return df.fillna(df.mode().iloc[0])
+        # Fill with the first mode if multiple modes exist
+        df.fillna(df.mode().iloc[0], inplace=True)
     else:
-        return df.fillna(strategy)
+        # Assume strategy is a scalar fill value
+        df.fillna(strategy, inplace=True)
+
+    if inplace:
+        return None
+    else:
+        return df
+
     
     
 def remove_unnecessary_columns(df, columns_to_remove):
@@ -250,6 +283,41 @@ def remove_unnecessary_columns(df, columns_to_remove):
     data_cleaned = df.drop(columns=columns_to_remove, axis=1)
     
     return data_cleaned
+
+
+
+
+def convert_columns_to_int(df, column_names):
+    """
+    Convert specified columns in a DataFrame from float to int.
+    
+    Parameters:
+    df (DataFrame): The DataFrame containing the columns to convert.
+    column_names (list): A list of names of the columns to convert to integers.
+    
+    Returns:
+    DataFrame: The DataFrame with the converted columns.
+    """
+    for column_name in column_names:
+        # Check if the column exists in the DataFrame
+        if column_name not in df.columns:
+            print(f"Column '{column_name}' not found in DataFrame.")
+            continue  # Skip this column and move to the next
+
+        # Check if the column can be converted to int
+        if not pd.api.types.is_float_dtype(df[column_name]):
+            print(f"Column '{column_name}' is not of float type or has NaN values that cannot be converted.")
+            continue  # Skip this column and move to the next
+        
+        # Convert the column to int, assuming NaN values have been appropriately handled before this step
+        try:
+            df[column_name] = df[column_name].astype(int)
+            print(f"Column '{column_name}' successfully converted to int.")
+        except ValueError as e:
+            print(f"Error converting column '{column_name}' to int: {e}")
+    return df
+
+
 
 
 
@@ -271,10 +339,18 @@ def preprocess_data(file_path):
     # Missing value analysis
     missing_value_analysis(data)
     
+    # Handle missing value
+    data = handle_missing_values(data, strategy='mode')
+    
      # Define columns to remove
     columns_to_remove = ['User_ID', 'Product_ID']
     # Remove unnecessary columns
     data = remove_unnecessary_columns(data, columns_to_remove)
+    
+    columns_to_convert_to_int = ['Product_Category_2', 'Product_Category_3']
+    data = convert_columns_to_int(data, columns_to_convert_to_int)
+    
+    
     
     # Check unique value
     check_unique_value(data)
@@ -285,9 +361,6 @@ def preprocess_data(file_path):
     # Check and remove duplicate values if necessary
     if has_duplicates:
         data, duplicates_removed = check_and_remove_duplicates(data)
-    
-    # Handle missing value
-    data = handle_missing_values(data, strategy='mode')
     
     # Check for outliers in the 'Purchase' column
     # _, _, outlier_percentage = check_for_outliers(data, 'Purchase')
@@ -311,6 +384,12 @@ cleaned_data = preprocess_data(file_path)
 
 # verify the codes.
 print(cleaned_data.head())
+print("")
+print(cleaned_data.info())
+print("")
+print(cleaned_data.isnull().sum())
+print("")
+print(f"Shape: {cleaned_data.shape}")
 
 # Save the clean dataset
 cleaned_data_file_path = 'cleaned_black_friday_data.csv'
