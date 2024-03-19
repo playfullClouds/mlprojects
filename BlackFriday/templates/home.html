@@ -137,20 +137,21 @@
                 <input class="btn btn-primary" type="submit" value="Predict the Spending" />
             </div>
 
-            <!-- Back Button -->
-            <div>
-                <a href="/" class="btn btn-secondary">Back to Home</a>
+            <div class="results-container">
+                <!-- Back Button -->
+                <div class="back-button">
+                    <a href="/" class="btn btn-secondary">Back to Home</a>
+                </div>
+            
+                <!-- Prediction Result -->
+                {% if results %}
+                    <h2 class="prediction-result">
+                        The prediction is: ${{ results }}
+                    </h2>
+                {% endif %}
             </div>
-
-        </form>
         
-       
-
-        {% if results %}
-            <h2 class="prediction-result">
-                The prediction is: {{ results }}
-            </h2>
-        {% endif %}
+        </form>
     
     </div>
 

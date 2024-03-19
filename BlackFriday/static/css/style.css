@@ -1,9 +1,12 @@
 /* Set default font, remove margin and padding for the entire document */
 body {
-    font-family: 'Arial', sans-serif; /* Default font set to Arial */
+    /* font-family: 'Arial', sans-serif; Default font set to Arial */
+    font-family: 'Merriweather', serif;
+    font-size: 16px; /* Default text */
+
     margin: 0; /* Remove default margin */
     padding: 0; /* Remove default padding */
-    background: #f4f4f4; /* Light gray background color */
+    background: #323232; /* Off Black for the whole page background */
     color: #333; /* Dark gray text color */
     line-height: 1.6; /* Spacing between lines */
 }
@@ -14,6 +17,8 @@ body {
     max-width: 1170px; /* Maximum width of container */
     margin: auto; /* Center the container */
     padding: 15px; /* Padding inside the container */
+    margin: auto; /* Center the container */
+    border-radius: 8px; /* Optional: Rounded corners for the container */
 }
 
 
@@ -103,6 +108,22 @@ form {
 }
 
 
+/* Container for the back button and prediction result */
+.results-container {
+    display: flex;
+    justify-content: space-between; /* Aligns children to opposite ends */
+    align-items: center; /* Centers children vertically */
+    flex-wrap: wrap; /* Allows items to wrap if not enough space */
+}
+
+.back-button {
+    /* Ensures the button doesn't stretch and aligns to the left */
+    flex-shrink: 0; /* Prevents shrinking */
+}
+
+
+
+
 /* Style specifically for the prediction result */
 .prediction-result {
     color: #333; /* Dark color for better contrast on light background */
@@ -112,6 +133,8 @@ form {
     border-radius: 4px; /* Rounds the corners */
     display: inline-block; /* Only as wide as it needs to be */
     margin-top: 20px; /* Adds space above the element */
+    margin-left: auto; /* Pushes the prediction result to the right */
+    text-align: right; /* Aligns the text to the right */
 }
 
 
